@@ -43,9 +43,6 @@ app.controller('GameCtrl', function($scope, $routeParams, SocketSvc) {
 	};
 	
 	$(document).ready(function() {
-		var footer = $("#footer");
-		footer.attr("style", "margin-left:" + (-1 * footer.width() / 2));
-
 		var logo = $("#logo");
 		logo.delay(2000).animate({
 			top: '200px',
@@ -62,6 +59,36 @@ app.controller('GameCtrl', function($scope, $routeParams, SocketSvc) {
 
 		$("#circle-outline").delay(3500).fadeTo(500, 1);
 		$("#footer").delay(3500).fadeTo(1000, 1);
+	});
+
+	$(window).resize(function() {
+		var width = Math.min(750, $(window).width() - 200);
+		var height = Math.min(750, $(window).height() - 200);
+		var size = Math.min(width, height);
+		$("#circle").css("width", size);
+		$("#circle").css("height", size);
+		$("#circle").css("margin-left", -size / 2);
+		$("#circle").css("margin-top", -size / 2);
+
+		if (size <= 100) {
+			$("#footer p").text("ಠ_ಠ");
+			$("#footer p").css("font-size", 36);
+			$("#footer p").css("font-family", "Helvetica");
+			$("#footer p").css("margin-left", -36);
+		} else {
+			$("#footer p").text("lonely?  invite some friends");
+			$("#footer p").css("font-size", 20);
+			$("#footer p").css("font-family", "Roboto");
+			$("#footer p").css("margin-left", -119.5);
+		}
+
+		var width = Math.min(770, $(window).width() - 180);
+		var height = Math.min(770, $(window).height() - 180);
+		var size = Math.min(width, height);
+		$("#circle-outline").css("width", size);
+		$("#circle-outline").css("height", size);
+		$("#circle-outline").css("margin-left", -size / 2);
+		$("#circle-outline").css("margin-top", -size / 2);
 	});
 
 	var addScore = function(color, score) {
