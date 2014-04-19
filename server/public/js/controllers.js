@@ -35,60 +35,102 @@ app.controller('PongStage', ['$scope', function($scope) {
 		this.color = color;
 	}
 
+	//function 
+
 	//functions
 
-	function createSector(){
+	function createSector(userId){
 
 		var drawing = new createjs.Shape();
-
-		var color = colors[Math.round(Math.random() * colors.length)];
+		var colorId = Math.round(Math.random() * colors.length);
+		var color = colors[colorId];
+		colors.splice(colorId,1);
+		console.log(colors);
 
 		drawing.graphics.beginStroke(color)
-		    .setStrokeStyle(radius).arc(0,0, radius/2, 0, (360 / (1 + gameObjSectors.length)) * (Math.PI/180));
+		    .setStrokeStyle(radius).arc(0,0, radius/2, 0, (360 / (1 + Object.keys(gameObjSectors).length)) * (Math.PI/180));
 
 		drawing.x = centerPoint.x;
 		drawing.y = centerPoint.y;
 		stage.addChild(drawing);
 
-		var sector = new gameObjSector(drawing, 360/(1 + gameObjSectors.length), color);
-		gameObjSectors.push(sector);
+		var sector = new gameObjSector(drawing, 360/(1 + Object.keys(gameObjSectors).length), color);
+		gameObjSectors[userId] = sector;
 		console.log(sector);
 		recalculateSectors();
 	}
 
+	function deleteSector(userId){
+
+		stage.removeChild(gameObjSectors.drawing);
+
+		delete gameObjSectors[userId]; 
+
+		var new_object = {};
+
+		for(var i  in gameObjSectors){
+			new_object[i] = gameObjSectors[i];
+		}
+
+		gameObjSectors = new_object;
+
+		console.log(gameObjSectors);
+
+		recalculateSectors();
+
+		console.log(gameObjSectors);
+
+	}
+
 	function recalculateSectors(){
 
-		var num = gameObjSectors.length;
+		var num = Object.keys(gameObjSectors).length;
 		var previousRange = 0; 
 
-		for(var i = 0; i < num ; i+=1){
+		console.log(num);
+
+		for(var i  in gameObjSectors){
 			//gameObjSectors[i].range *= ((1 - num)/360);
 			gameObjSectors[i].range = 360/num;
 
-			if (i == num-1)
-				gameObjSectors[i].range = 360- previousRange
+			//if (i == num-1)
+			//	gameObjSectors[i].range = 360- previousRange
 
 			gameObjSectors[i].drawing.rotation = previousRange;
 			previousRange += gameObjSectors[i].range;
 
 			console.log('r[', i, ']', gameObjSectors[i].range);
-			
+
 		}
 
 	}
 
+	function updatePaddles(){
+
+	}
+
+	function score(){
+
+	}
+
+	function defended(){
+
+	}
 
 	//createjs
 	var stage = new createjs.Stage("demoCanvas");
 	createjs.Ticker.addEventListener("tick", tick);
 
 
-	createSector();
-	createSector();
-	createSector();
-	createSector();
-	createSector();
-	createSector();
+	createSector('1');
+	createSector('2');
+	createSector('3');
+	createSector('4');
+	createSector('5');
+	createSector('6');
+
+	deleteSector('6');
+	deleteSector('5');
 
 	console.log(gameObjSectors);
 
