@@ -1,4 +1,3 @@
-
 var WebSocket = require('ws');
 var WebSocketServer = WebSocket.Server;
 var GameLoop = require('./gameloop');
@@ -56,11 +55,17 @@ server.on('connection', function(socket){
 			session(sessionId).players.push(socket);
 			var numPlayers = session(sessionId).players.length;
 			socket.playerSize = 360.0 / numPlayers;
+			socket.paddlePosition = socket.playerSize / 2.0;
 			var multiplier = ((360.0 - socket.playerSize) / 360.0);
 			var stateArray = [];
-			for(var i=0; i<numPlayers; i++){
+			for(var i = 0; i<numPlayers; i++){
 				if (i !== (numPlayers - 1)) session(sessionId).players[i].playerSize *= multiplier;
-				stateArray.push({size: session(sessionId).players[i].playerSize, id: session(sessionId).players[i].playerId});
+				if (i !== (numPlayers - 1)) session(sessionId).players[i].paddlePosition *= multiplier;
+				stateArray.push({
+					size: session(sessionId).players[i].playerSize, 
+					paddlePosition: session(sessionId).players[i].paddlePosition,
+					id: session(sessionId).players[i].playerId
+				});
 			}
 			socket.send(JSON.stringify({type: 'init', state: stateArray, resumeTime: Date.now() + 4000}));
 			var beginObj = {type: 'newPlayer',  numPlayers: numPlayers, playerId: socket.playerId, resumeTime: Date.now() + 4000};
@@ -87,11 +92,20 @@ server.on('connection', function(socket){
 	
 	socket.on('close', function(){
 		var index = session(sessionId).players.indexOf(socket);
+		var vacantSpace = session(sessionId).players[index].playerSize;
 		session(sessionId).players.splice(index, 1);
 		var numPlayers = session(sessionId).players.length;
+		var multiplier = (360.0 / (360.0 - vacantSpace));
 		if (numPlayers > 0) {
-			var beginObj = {type: 'playerLeave', playerIndex: index, numPlayers: numPlayers, resumeTime: Date.now() + 4000};
+			var beginObj = {
+				type: 'playerLeave', 
+				playerIndex: index, 
+				numPlayers: numPlayers, 
+				resumeTime: Date.now() + 4000
+			};
 			for(var i=0; i<numPlayers; i++){
+				session(sessionId).players[i].size *= multiplier;
+				session(sessionId).players[i].paddlePosition *= multiplier;
 				session(sessionId).players[i].send(JSON.stringify(beginObj));
 			}
 		} else {
@@ -100,5 +114,4 @@ server.on('connection', function(socket){
 	});
 	
 });
-
 app.listen(80);
