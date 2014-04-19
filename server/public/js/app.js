@@ -8,6 +8,9 @@ app.config(function($routeProvider, $locationProvider) {
 	}).when("/:session/:user", {
 		templateUrl: "/views/game.html",
 		controller: 'GameCtrl'
+	}).when("/pong", {
+		templateUrl: "/views/pongStage.html",
+		controller: "PongStage"
 	}).otherwise({
 		redirectTo: "/"
 	});
