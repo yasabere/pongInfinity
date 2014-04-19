@@ -40,16 +40,20 @@ app.controller('PongStage', ['$scope', function($scope) {
 	function createSector(){
 
 		var drawing = new createjs.Shape();
-		drawing.graphics.beginStroke('green')
-		    .setStrokeStyle(radius).arc(0,0, radius/2, 0, (360 / (1 + gameObjSectors.length)) * (180/Math.PI));
+
+		var color = colors[Math.round(Math.random() * colors.length)];
+		console.log(  Math.round(Math.random() * colors.length));
+
+		drawing.graphics.beginStroke(color)
+		    .setStrokeStyle(radius).arc(0,0, radius/2, 0, (360 / (1 + gameObjSectors.length)) * (Math.PI/180));
 
 		drawing.x = centerPoint.x;
 		drawing.y = centerPoint.y;
 		stage.addChild(drawing);
 
-		gameObjSectors.push(new gameObjSector(drawing, 360/(1 + gameObjSectors.length), 'green'));
+		gameObjSectors.push(new gameObjSector(drawing, 360/(1 + gameObjSectors.length), color));
 
-		console.log(new gameObjSector(drawing, 360/(1 + gameObjSectors.length), 'green'));
+		console.log(new gameObjSector(drawing, 360/(1 + gameObjSectors.length), color));
 
 		recalculateSectors();
 	}
@@ -60,9 +64,9 @@ app.controller('PongStage', ['$scope', function($scope) {
 		var previousRange = 0; 
 
 		for(var i = 0; i < num ; i++){
-			gameObjSectors[0].range *= (1-num/360);
-			gameObjSectors[0].angle = previousRange;
-			previousRange = gameObjSectors[0].range;
+			gameObjSectors[i].range *= ((num)/360);
+			gameObjSectors[i].angle = previousRange;
+			previousRange = gameObjSectors[i].range;
 		}
 
 	}
@@ -73,6 +77,10 @@ app.controller('PongStage', ['$scope', function($scope) {
 	createjs.Ticker.addEventListener("tick", tick);
 
 
+	createSector();
+	createSector();
+	createSector();
+	createSector();
 	createSector();
 	createSector();
 
