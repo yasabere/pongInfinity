@@ -37,22 +37,12 @@ var turbo = (function () {
 		this._$_onMessage = function (event) {
 			console.log('_onMessage', event);
 			var data = JSON.parse(event.data);
-			switch (data.type) {
-			case 'success':
-				if (_this._$_messageCallbackMap[data.transaction]) {
-					_this._$_messageCallbackMap[data.transaction](null, data.result);
-					delete _this._$_messageCallbackMap[data.transaction];
-				}
-				break;
-			case 'error':
-				if (_this._$_messageCallbackMap[data.transaction]) {
-					_this._$_messageCallbackMap[data.transaction](null, data.problem);
-					delete _this._$_messageCallbackMap[data.transaction];
-				}
-				break;
-			default:
-				console.log('WAT DO WIFF DIS');
-				break;
+			// Check the message type
+			var queue;
+			if (queue = _this._$_messageCallbackMap[data.type]) {
+				queue.forEach(function(cb) {
+					cb(data);
+				});
 			}
 		};
 		this._$_onError = function (event) {
@@ -89,16 +79,15 @@ var turbo = (function () {
 		}
 	};
 	TurboClient.prototype.on = function (name, cb) {
-		switch (name) {
-		case 'open':
-			this._$_connectCallbacks.push(cb);
-			break;
-		case 'close':
-			this._$_disconnectCallbacks.push(cb);
-			break;
-		default:
-			throw '\'' + name + '\' is not a supported event type';
+		if (!name) throw 'The name was null';
+		if (!cb) throw 'The callback was null';
+
+		var queue;
+		if (queue = this._$_messageCallbackMap[name]) {
+		} else {
+			queue = this._$_messageCallbackMap[name] = [];
 		}
+		queue.push(cb);
 	};
 	
 	/************************************* METHOD DEFINITIONS *************************************/
@@ -119,7 +108,7 @@ var turbo = (function () {
 		client.disconnect = TurboClient.prototype.disconnect;
 		client.on = TurboClient.prototype.on;
 
-		return client;
+		return new TurboClient(url);
 	};
 
 	return makeClient;

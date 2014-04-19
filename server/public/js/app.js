@@ -4,9 +4,10 @@ var app = angular.module('pongApp', ['ngRoute' /* Module dependencies */ ]);
 
 app.config(function($routeProvider, $locationProvider) {
 	$routeProvider.when("/", {
-		templateUrl: "/views/main.html"
-	}).when("/pong", {
-		templateUrl: "/views/pongStage.html"
+		templateUrl: "/views/problem.html"
+	}).when("/:session/:user", {
+		templateUrl: "/views/game.html",
+		controller: 'GameCtrl'
 	}).otherwise({
 		redirectTo: "/"
 	});
