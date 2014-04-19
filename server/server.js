@@ -29,11 +29,11 @@ function removePlayer(sessionId, playerId){
 
 function onFrame(gameDataId, afl){
 	var gameData = games[gameDataId];
-	console.log(gameData);
 	//TODO: frame logic
 	
 	for(var i=0; i<gameData.players.length; i++){
-		gameData.players[i].send({playerPositions: gameData.playerPositions, ball: gameData.ball});
+		console.log({playerPositions: gameData.playerPositions, ball: gameData.ball});
+		gameData.players[i].send(JSON.stringify({type: 'frame', playerPositions: gameData.playerPositions, ball: gameData.ball}));
 	}
 }
 
@@ -46,8 +46,10 @@ server.on('connection', function(socket){
 		console.log(payload);
 		if(!socket.playerId && payload.user && payload.session){
 			socket.playerId = payload.user;
+			if(!games[(payload.session)]) createGame(payload.session);
 			games[(payload.session)].players.push(socket);
 			games[(payload.session)].playerPositions.push(0);
+			games[(payload.session)].loop.begin();
 		}
 	});
 	

@@ -1,10 +1,10 @@
 module.exports = function(frameLength, gameDataId, onFrame){
+	this.interval;
 	var previousTime;
-	var interval;
 	
 	var gameLoop = function() {
 		var now = Date.now();
-		interval = setTimeout(gameLoop, 2*frameLength - (now - previousTime));
+		this.interval = setTimeout(gameLoop, 2*frameLength - (now - previousTime));
 		onFrame(gameDataId, now - previousTime);
 		previousTime = now;
 	}
@@ -15,6 +15,6 @@ module.exports = function(frameLength, gameDataId, onFrame){
 	}
 	
 	this.stop = function(){
-		clearTimeout(interval);
+		clearTimeout(this.interval);
 	}
 }
