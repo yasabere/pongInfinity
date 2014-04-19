@@ -40,6 +40,10 @@ app.controller('GameCtrl', function($scope, $routeParams, SocketSvc) {
 			}
 			console.log('leave', $scope.state);
 		});
+		SocketSvc.on('paddleMove', function(payload){
+			// Look for which sector's quadrant moved
+			$scope.state[payload.playerIndex].paddlePosition = payload.paddlePosition;
+		});
 	};
 	
 	$(document).ready(function() {
