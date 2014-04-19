@@ -33,6 +33,7 @@ app.controller('PongStage', ['$scope', function($scope) {
 		this.drawing = drawing;
 		this.range = range;
 		this.color = color;
+		this
 	}
 
 	//function 
@@ -42,7 +43,7 @@ app.controller('PongStage', ['$scope', function($scope) {
 	function createSector(userId){
 
 		var drawing = new createjs.Shape();
-		var colorId = Math.round(Math.random() * colors.length);
+		var colorId = Math.round(Math.random() * (colors.length-1));
 		var color = colors[colorId];
 		colors.splice(colorId,1);
 		console.log(colors);
@@ -62,7 +63,7 @@ app.controller('PongStage', ['$scope', function($scope) {
 
 	function deleteSector(userId){
 
-		stage.removeChild(gameObjSectors.drawing);
+		stage.removeChild(gameObjSectors[userId].drawing);
 
 		delete gameObjSectors[userId]; 
 
