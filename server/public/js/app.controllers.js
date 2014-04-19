@@ -41,4 +41,37 @@ app.controller('GameCtrl', function($scope, $routeParams, SocketSvc) {
 			console.log('leave', $scope.state);
 		});
 	};
+	
+	$(document).ready(function() {
+		var footer = $("#footer");
+		footer.attr("style", "margin-left:" + (-1 * footer.width() / 2));
+
+		var logo = $("#logo");
+		logo.delay(2000).animate({
+			top: '200px',
+			zoom: '0.25'
+		}, 1500);
+
+		var circle = $("#circle");
+		circle.delay(2000).animate({
+			width: '750px',
+			height: '750px',
+			marginTop: '-375px',
+			marginLeft: '-375px'
+		}, 1500);
+
+		$("#circle-outline").delay(3500).fadeTo(500, 1);
+		$("#footer").delay(3500).fadeTo(1000, 1);
+	});
+
+	var addScore = function(color, score) {
+		var scoreItem = $('<div></div>');
+		scoreItem.attr("class", "score-item");
+		scoreItem.css("background-color", color);
+
+		var scoreText = $('<p>' + score + '</p>');
+		scoreItem.append(scoreText);
+
+		$("#scoreboard").append(scoreItem);
+	};
 });

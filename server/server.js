@@ -1,4 +1,3 @@
-
 var WebSocket = require('ws');
 var WebSocketServer = WebSocket.Server;
 var GameLoop = require('./gameloop');
@@ -108,7 +107,4 @@ server.on('connection', function(socket){
 			killSession(sessionId);
 		}
 	});
-	
 });
-
-app.listen(80);
