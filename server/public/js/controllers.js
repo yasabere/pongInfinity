@@ -29,11 +29,33 @@ app.controller('PongStage', ['$scope', function($scope) {
 		];
 
 	//objects
+	function gameObjPaddle(archDistance, angle, sector){
+		this.archDistance = Math.min(sector.range, archDistance)
+		this.angle = Math.min(angle, sector.range - archDistance/2);
+		this.angle = Math.max(angle, sarchDistance/2);
+
+		this.angularVelocity = 0;
+		this.angularVelocityMax = 3;
+		this.angularAcceleration = 1; 
+
+		this.moveClockwise() = function(){
+
+			this.angle = this.angle % 360;
+
+		}
+
+		this.moveCounterClockwise() = function(){
+			this.angle = this.angle % 360;
+		}
+		
+	}
+
 	function gameObjSector(drawing, range, color){
 		this.drawing = drawing;
 		this.range = range;
 		this.color = color;
-		this
+		this.paddle = null;
+		this.score = 1;
 	}
 
 	//function 
@@ -122,7 +144,6 @@ app.controller('PongStage', ['$scope', function($scope) {
 	var stage = new createjs.Stage("demoCanvas");
 	createjs.Ticker.addEventListener("tick", tick);
 
-
 	createSector('1');
 	createSector('2');
 	createSector('3');
@@ -137,5 +158,13 @@ app.controller('PongStage', ['$scope', function($scope) {
 
 	function tick(event) {    
 	    stage.update();
+	}
+
+	$scope.addPlayer = function(){
+		createSector(Object.keys(gameObjSectors).length+1+'');
+	};
+
+	$scope.removePlayer = function(){
+		deleteSector(Object.keys(gameObjSectors).length);
 	}
 }]);
