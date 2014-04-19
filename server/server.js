@@ -2,12 +2,18 @@ var WebSocket = require('ws');
 var WebSocketServer = WebSocket.Server;
 var GameLoop = require('./gameloop');
 var express = require('express');
+var path = require('path');
 var app = express();
 
 var FRAME_RATE = 100;
 var games = {};
 
 app.use(express.static('public'));
+app.set('view engine', 'html');
+
+app.get('/pong',function(req, res){
+	res.sendfile(path.join('public','pages','desktop.html'));
+});
 
 function createGame(sessionId){
 	games[sessionId] = {players: [], playerPositions: [],  ball: {x:0, y:0, dx:0, dy: 0}, loop: new GameLoop(100, sessionId, onFrame)};
