@@ -58,12 +58,14 @@ server.on('connection', function(socket){
 			socket.paddlePosition = socket.playerSize / 2.0;
 			var multiplier = ((360.0 - socket.playerSize) / 360.0);
 			var stateArray = [];
-			for(var i=0; i<numPlayers; i++){
-				if (i !== (numPlayers - 1)) {
-					session(sessionId).players[i].playerSize *= multiplier;
-					session(sessionId).players[i].paddlePosition *= multiplier;
-				}
-				stateArray.push({size: session(sessionId).players[i].playerSize, paddlePosition: session(sessionId).players[i].paddlePosition, id: session(sessionId).players[i].playerId});
+			for(var i = 0; i<numPlayers; i++){
+				if (i !== (numPlayers - 1)) session(sessionId).players[i].playerSize *= multiplier;
+				if (i !== (numPlayers - 1)) session(sessionId).players[i].paddlePosition *= multiplier;
+				stateArray.push({
+					size: session(sessionId).players[i].playerSize, 
+					paddlePosition: session(sessionId).players[i].paddlePosition,
+					id: session(sessionId).players[i].playerId
+				});
 			}
 			socket.send(JSON.stringify({type: 'init', state: stateArray, resumeTime: Date.now() + 4000}));
 			var beginObj = {type: 'newPlayer',  numPlayers: numPlayers, playerId: socket.playerId, resumeTime: Date.now() + 4000};
@@ -85,26 +87,31 @@ server.on('connection', function(socket){
 				}
 				if (player !== socket) player.send(data);
 			});
-		} else if (payload.type === 'paddle') {
 		}
 	});
 	
 	socket.on('close', function(){
-		console.log('closed');
 		var index = session(sessionId).players.indexOf(socket);
-		var vacantSpace = session(sessionId).players[index].size;
+		var vacantSpace = session(sessionId).players[index].playerSize;
 		session(sessionId).players.splice(index, 1);
 		var numPlayers = session(sessionId).players.length;
 		var multiplier = (360.0 / (360.0 - vacantSpace));
 		if (numPlayers > 0) {
-			var endObj = JSON.stringify({type: 'playerLeave', playerIndex: index, numPlayers: numPlayers, resumeTime: Date.now() + 4000});
+			var beginObj = {
+				type: 'playerLeave', 
+				playerIndex: index, 
+				numPlayers: numPlayers, 
+				resumeTime: Date.now() + 4000
+			};
 			for(var i=0; i<numPlayers; i++){
-				session(sessionId).players[i].playerSize *= multiplier;
+				session(sessionId).players[i].size *= multiplier;
 				session(sessionId).players[i].paddlePosition *= multiplier;
-				session(sessionId).players[i].send(endObj);
+				session(sessionId).players[i].send(JSON.stringify(beginObj));
 			}
 		} else {
 			killSession(sessionId);
 		}
 	});
+	
 });
+app.listen(80);
