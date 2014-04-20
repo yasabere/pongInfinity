@@ -106,6 +106,7 @@ server.on('connection', function(socket){
 			var endObj = {
 				type: 'playerLeave', 
 				playerIndex: index, 
+				id: session(sessionId).players[index].playerId,
 				numPlayers: numPlayers, 
 				resumeTime: Date.now() + 4000
 			};

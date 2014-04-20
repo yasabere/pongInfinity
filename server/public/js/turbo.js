@@ -89,6 +89,9 @@ var turbo = (function () {
 		}
 		queue.push(cb);
 	};
+	TurboClient.prototype.send = function (str) {
+		this.ws.send(str);
+	};
 	
 	/************************************* METHOD DEFINITIONS *************************************/
 
