@@ -51,7 +51,7 @@ app.controller('PongStage', ['$scope',
 			this.x = 40;
 			this.y = 0;
 			this.dx = 5;
-			this.dy = 0;
+			this.dy = -.8;
 			this.radius = 10;
 			this.color = 'white';
 
@@ -97,6 +97,9 @@ app.controller('PongStage', ['$scope',
 					this.dy = _dy;
 				}
 
+				var _angle = Math.atan(this.dy / this.dx);
+				//_angle
+				console.log("yrdy " + _angle);
 			};
 			// Checks collision for the ball
 			this.update = function() {
