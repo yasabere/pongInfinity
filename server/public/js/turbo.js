@@ -36,7 +36,6 @@ var turbo = (function () {
 			}
 		};
 		this._$_onMessage = function (event) {
-			console.log('_onMessage', event);
 			var data = JSON.parse(event.data);
 			// Check the message type
 			var queue;
@@ -58,19 +57,22 @@ var turbo = (function () {
 	};
 	// EXTERNAL FUNCTIONS
 	TurboClient.prototype.connect = function (sessionId, userId, callback) {
+      var _this = this;
+      setTimeout(function() {
 		if (!sessionId) throw 'The session id was null';
 		if (!userId) throw 'The user id was null';
 
-		this.sessionId = sessionId;
-		this.userId = userId;
+		_this.sessionId = sessionId;
+		_this.userId = userId;
 
-		this._$_connectCallbacks.push(callback);
+		_this._$_connectCallbacks.push(callback);
 		// Create the ws
-		this.ws = new WebSocket(this.url);
-		this.ws.onopen = this._$_onOpen;
-		this.ws.onclose = this._$_onClose;
-		this.ws.onmessage = this._$_onMessage;
-		this.ws.onerror = this._$_onError;
+		_this.ws = new WebSocket(_this.url);
+		_this.ws.onopen = _this._$_onOpen;
+		_this.ws.onclose = _this._$_onClose;
+		_this.ws.onmessage = _this._$_onMessage;
+		_this.ws.onerror = _this._$_onError;
+      }, 4000);
 	};
 	TurboClient.prototype.disconnect = function (callback) {
 		if (this.ws) {

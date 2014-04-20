@@ -39,7 +39,6 @@ function onFrame(sessionId, delta){
   	var ball = session(sessionId).ball;
   	var players = session(sessionId).players;
   	var flag = null;
-	
   	if(Math.pow(ball.x, 2) + Math.pow(ball.y, 2) > Math.pow(GAME_RADIUS, 2)){
        	var conversionFactor = (180.0 / Math.PI);
   		var alpha = conversionFactor * Math.atan(Math.abs(ball.y) / Math.abs(ball.x));
@@ -94,6 +93,7 @@ function onFrame(sessionId, delta){
 					}
                 } else {
                   	flag = 'miss:' + session(sessionId).lastHit + ':' + i;
+                  	session(sessionId).lastHit = -1;
                   	var theta = Math.PI * 2 * Math.random();
                   	// Reset the position of the ball
                   	ball.x = 0;
@@ -138,15 +138,12 @@ app.get('/:session/:user', function(req, res){
 var server = new WebSocketServer({port: 9001});
 server.on('connection', function(socket){
 	var sessionId;
-	console.log('connected');
 	socket.on('message', function(data){
 		var payload = JSON.parse(data);
 		if (!sessionId) sessionId = payload.session;
-		console.log('payload', data);
 		if(payload.type === 'connect'){
 			socket.playerId = payload.user;
 			session(sessionId).players.push(socket);
-          	console.log(session(sessionId).players.length)
 			var numPlayers = session(sessionId).players.length;
 			socket.playerSize = 360.0 / numPlayers;
 			socket.paddlePosition = socket.playerSize / 2.0;
@@ -169,8 +166,14 @@ server.on('connection', function(socket){
 			for(var i=0; i < numPlayers - 1; i++){
 				session(sessionId).players[i].send(JSON.stringify(beginObj));
 			}
+          for(var i=0; i < numPlayers; i++){
+            console.log(session(sessionId).players[i].playerId);
+			}
+          	
+          
           	session(sessionId).loop.begin();
 		} else if (payload.type === 'paddleMove') {
+          	console.log('got the paddle move', payload.paddlePosition, payload.id);
           	socket.paddlePosition = payload.paddlePosition;
 			session(sessionId).players.forEach(function(player) {
 				if (socket !== player) {

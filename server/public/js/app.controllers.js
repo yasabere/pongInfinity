@@ -165,31 +165,6 @@ var initAnimations = function() {
 	$(window).resize(resizeTheCircle);
 };
 
-var scoreElements = new Array();
-var addScore = function(indexOfScorer) {
-  	var scorer = gameObjSector[indexOfScorer];
-	
-  	if (scores[indexOfScorer] != null) {
-      	scorer.score++;
-      	scoreElements[indexOfScorer].text(scorer.score);
-    }
-  	else {
-      	var scoreItem = $('<div></div>');
-		scoreItem.attr("class", "score-item");
-		scoreItem.css("background-color", color);
-
-        var scoreText = $('<p>' + score + '</p>');
-        scoreItem.append(scoreText);
-        $("#scoreboard").append(scoreItem);
-    }
-  
-	if (tutorialOver) {
-		$("#message").fadeTo(500, 1);
-		$("#message").text("score!");
-		$("#message").delay(1000).fadeTo(500, 0);
-	}
-};
-
 app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 	function($scope, $routeParams, $rootScope, SocketSvc) {
 		//variables
@@ -204,6 +179,15 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 			radius = newRadius;
 			if (stage) stage.update();
 		};
+      
+      function findUser(id) {
+        for(var i = 0; i < gameObjSectorsArray.length ;i+=1){
+            if(gameObjSectorsArray[i].id === id){
+              return gameObjSectorsArray[i];
+            } 
+        }
+        return null;
+      }
 
 		var centerPoint = {
 			x: 500,
@@ -256,6 +240,7 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 			if (stage) stage.addChild(this.drawing);
 		}
 
+      
 		function gameObjPaddle(archDistance, angle, sector) {
 			this.archDistance = Math.min(sector.range, archDistance);
 			this.angle = Math.min(angle, sector.range - archDistance / 2);
@@ -274,7 +259,7 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 			this.angularAcceleration = 5;
 
 			this.moveClockwise = function() {
-				if (this.angularVelocity > -this.angularVelocityMax) {
+              if (this.angularVelocity > -this.angularVelocityMax) {
 					this.angularVelocity -= this.angularAcceleration;
 				} else {
 					this.angularVelocity = -this.angularVelocityMax;
@@ -330,13 +315,14 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 
 		}
 
-		function gameObjSector(drawing, range, color) {
+		function gameObjSector(drawing, range, color, id) {
 			this.drawing = drawing;
 			this.range = range;
 			this.color = color;
 			this.paddle = null;
 			this.score = 0;
 			this.angle = 0;
+          	this.id = id;
 		}
 
 		//function 
@@ -348,27 +334,29 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 			if (gameObjSectorsArray.length < 8) {
 
 				var drawing = new createjs.Shape();
-				var colorId = Math.round(Math.random() * (colors.length - 1));
+				var colorId = gameObjSectorsArray.length;
 				var color = colors[colorId];
-				colors.splice(colorId, 1);
 
 				drawing.graphics.beginStroke(color)
-					.setStrokeStyle(radius).arc(0, 0, radius / 2, 0, (360 / (1 + Object.keys(gameObjSectors).length)) * (Math.PI / 180));
+					.setStrokeStyle(radius).arc(0, 0, radius / 2, 0, (360 / (1 + gameObjSectorsArray.length)) * (Math.PI / 180));
 
 				drawing.x = centerPoint.x;
 				drawing.y = centerPoint.y;
 				stage.addChild(drawing);
 
-				var sector = new gameObjSector(drawing, 360 / (1 + Object.keys(gameObjSectors).length), color);
-				gameObjSectors[userId] = sector;
+				var sector = new gameObjSector(drawing, 360 / (1 + gameObjSectorsArray.length), color, userId);
 
-				gameObjSectorsArray.push(userId);
+				gameObjSectorsArray.push(sector);
+        
 
 				sector.paddle = new gameObjPaddle(paddleSize, 0, sector);
 
 				recalculateSectors();
 
 				refreshBall();
+              
+              console.log(gameObjSectorsArray);
+              console.log(userId, sector);
 			}
 
 		}
@@ -381,9 +369,7 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 		function deleteSector(userId) {
 
 			if (gameObjSectorsArray.length > 0) {
-
-				colors.push(gameObjSectors[userId].color);
-
+              
 				stage.removeChild(gameObjSectors[userId].drawing);
 				stage.removeChild(gameObjSectors[userId].paddle.drawing);
 
@@ -416,24 +402,23 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 
 		function recalculateSectors() {
 
-			var num = Object.keys(gameObjSectors).length;
 			var previousRange = 0;
 
 			// console.log(num);
 
 			for (var i = 0; i < gameObjSectorsArray.length; i += 1) {
 				//gameObjSectors[i].range *= ((1 - num)/360);
-				gameObjSectors[gameObjSectorsArray[i]].range = 360 / num;
+				gameObjSectorsArray[i].range = 360 / gameObjSectorsArray.length;
 
 				//if (i == num-1)
 				//	gameObjSectors[i].range = 360- previousRange
 
-				gameObjSectors[gameObjSectorsArray[i]].drawing.rotation = previousRange; // + 180 -gameObjSectors[i].range/2;
-				gameObjSectors[gameObjSectorsArray[i]].angle = previousRange; // + 180 - gameObjSectors[i].range/2;
-				gameObjSectors[gameObjSectorsArray[i]].paddle.archDistance = gameObjSectors[gameObjSectorsArray[i]].range/6;
-                gameObjSectors[gameObjSectorsArray[i]].paddle.normalize();
+				gameObjSectorsArray[i].drawing.rotation = previousRange; // + 180 -gameObjSectors[i].range/2;
+				gameObjSectorsArray[i].angle = 360 - previousRange; // + 180 - gameObjSectors[i].range/2;
+				gameObjSectorsArray[i].paddle.archDistance = gameObjSectorsArray[i].range/6;
+                gameObjSectorsArray[i].paddle.normalize();
               	
-                previousRange += gameObjSectors[gameObjSectorsArray[i]].range;
+                previousRange += gameObjSectorsArray[i].range;
 
 				//console.log('r[', i, ']', gameObjSectors[gameObjSectorsArray[i]].range);
 
@@ -444,9 +429,9 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 		}
 
 		function updatePaddles() {
-			for (var i in gameObjSectors) {
-				gameObjSectors[i].paddle.update();
-			}
+          for (var i = 0; i < gameObjSectorsArray.length; i += 1) {
+           	gameObjSectorsArray[i].paddle.update(); 
+          }
 		}
 
 		var ball = new gameObjBall();
@@ -467,8 +452,9 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 			deleteSector(payload.id);
 		});
 		$rootScope.$on('PADDLE_MOVE', function(evt, payload) {
-			gameObjSectors[payload.id].paddle.angle = payload.angle;
-			gameObjSectors[payload.id].paddle.normalize();
+          
+			findUser(payload.id).paddle.angle = payload.angle;
+			findUser(payload.id).paddle.normalize();
 		});
 		$rootScope.$on('BALL_MOVE', function(evt, payload) {
           if (payload.flag != null) {
@@ -480,7 +466,7 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 				}
 			} else if (payload.flag.substring(0,4) === 'miss') {
 				soundEnd.play(payload);
-              	addScore(payload.flag.split(":")[1]);
+              	//addScore(payload.flag.split(":")[1], payload.flag.split(":")[2]);
 			}
           }
 
@@ -495,18 +481,21 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
           	ball.update();
 			stage.update();
 		}
+      
 
 		$(document).keydown(function(event) {
 			if (event.which === 37) {
 				//console.log("right");
 				$scope.$apply(function() {
-					gameObjSectors[userId].paddle.moveClockwise();
+                  
+                  	
+					findUser(userId).paddle.moveClockwise();
 					keyPressedRight = true;
 				});
 			} else if (event.which === 39) {
 				//console.log("left");
 				$scope.$apply(function() {
-					gameObjSectors[userId].paddle.moveCounterClockwise();
+					findUser(userId).paddle.moveCounterClockwise();
 					keyPressedLeft = true;
 				});
 			}
