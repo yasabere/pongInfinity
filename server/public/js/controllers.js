@@ -7,6 +7,9 @@ app.controller('PongStage', ['$scope', function($scope) {
 	var keysdown = false;
 	var bounced = false;
 
+	var keyPressedLeft = false;
+	var keyPressedRight = false;
+
 	var centerPoint = {
 		x:200,
 		y:250,
@@ -146,7 +149,6 @@ app.controller('PongStage', ['$scope', function($scope) {
 		this.angle = Math.max(angle, archDistance/2);
 		this.sector = sector;
 		this.drawing = new createjs.Shape();
-		this.keypressed = false;
 
 		this.drawing.x = centerPoint.x;
 		this.drawing.y = centerPoint.y;
@@ -196,19 +198,24 @@ app.controller('PongStage', ['$scope', function($scope) {
 			this.drawing.rotation = (-(this.angle+this.archDistance/2 ) + this.sector.angle);
 			this.keypressed = false;
 
-			if (this.keypressed == false){
-				//if(this.angularVelocity > 0){
-				//	this.angularVelocity -= 2;
-				//}
-				//else{
-					//this.angularVelocity = 0;
-				//}
+			if (keyPressedLeft == false && keyPressedRight == false){
+				
+				if (this.angularVelocity > 0){
+					this.angularVelocity = Math.max(0,this.angularVelocity - 1 );
+				}
+
+				if (this.angularVelocity < 0){
+					this.angularVelocity = Math.min(0,this.angularVelocity + 1 );
+				}
+
 			}
 		}
 
 		this.breakMovement = function(){
 			this.angularVelocity -= this.angularAcceleration;
 		};
+
+
 		
 	}
 
@@ -367,11 +374,27 @@ app.controller('PongStage', ['$scope', function($scope) {
         //console.log("right");
         $scope.$apply(function() {
         	gameObjSectors[userId].paddle.moveClockwise();
+        	keyPressedRight = true;
         });
       } else if (event.which === 39) {
         //console.log("left");
         $scope.$apply(function() {
           	gameObjSectors[userId].paddle.moveCounterClockwise();
+          	keyPressedLeft = true;
+        });
+      }
+    });
+
+    $(document).keyup(function(event) {
+      if (event.which === 37) {
+        //console.log("right");
+        $scope.$apply(function() {
+        	keyPressedRight = false;
+        });
+      } else if (event.which === 39) {
+        //console.log("left");
+        $scope.$apply(function() {
+          	keyPressedLeft = false;
         });
       }
     });
