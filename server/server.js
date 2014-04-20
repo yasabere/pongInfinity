@@ -87,6 +87,12 @@ server.on('connection', function(socket){
 				}
 				if (player !== socket) player.send(data);
 			});
+		} else if (payload.type === 'paddleMove') {
+			session(sessionId).players.forEach(function(player) {
+				if (socket !== player) {
+					player.send(data);
+				}
+			});
 		}
 	});
 	
@@ -97,7 +103,7 @@ server.on('connection', function(socket){
 		var numPlayers = session(sessionId).players.length;
 		var multiplier = (360.0 / (360.0 - vacantSpace));
 		if (numPlayers > 0) {
-			var beginObj = {
+			var endObj = {
 				type: 'playerLeave', 
 				playerIndex: index, 
 				numPlayers: numPlayers, 
@@ -106,7 +112,7 @@ server.on('connection', function(socket){
 			for(var i=0; i<numPlayers; i++){
 				session(sessionId).players[i].size *= multiplier;
 				session(sessionId).players[i].paddlePosition *= multiplier;
-				session(sessionId).players[i].send(JSON.stringify(beginObj));
+				session(sessionId).players[i].send(JSON.stringify(endObj));
 			}
 		} else {
 			killSession(sessionId);

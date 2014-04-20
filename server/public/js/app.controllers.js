@@ -30,15 +30,19 @@ app.controller('GameCtrl', function($scope, $routeParams, SocketSvc) {
 			};
 			$scope.state.push(player);
 		});
-		SocketSvc.on('playerLeave', function(payload) {
+		SocketSvc.on('playerLeave', function(payload){
 			var vacantSpace = $scope.state[payload.playerIndex].size;
 			$scope.state.splice(payload.playerIndex, 1);
-			var multiplier = (360.0 / (360.0 - vacantSpace));
+			var multiplier = (360.0 / (360.0 - vacantSpace)); 
 			for (var i = 0; i < $scope.state.length; i++) {
 				$scope.state[i].size *= multiplier;
 				$scope.state[i].paddlePosition *= multiplier;
 			}
 			console.log('leave', $scope.state);
+		});
+		SocketSvc.on('paddleMove', function(payload){
+			// Look for which sector's quadrant moved
+			$scope.state[payload.playerIndex].paddlePosition = payload.paddlePosition;
 		});
 	};
 

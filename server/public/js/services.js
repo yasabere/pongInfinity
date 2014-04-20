@@ -9,4 +9,11 @@ app.service('SocketSvc', function() {
 			cb(arguments[0]);
 		});
 	};
+	this.movePaddle = function(playerIndex, newPos) {
+		client.send(JSON.stringify({
+			type: 'paddleMove',
+			playerIndex: playerIndex,
+			paddlePosition: newPos
+		}));
+	};
 });
