@@ -38,15 +38,17 @@ app.controller('PongStage', ['$scope', function($scope) {
 		this.x = 40;
 		this.y = 0;
 		this.dx = 5;
-		this.dy = -5;
+		this.dy = 0;
+		this.radius = 10;
 		this.color = 'white';
 
 		this.drawing = new createjs.Shape();
-		this.drawing.graphics.beginFill("red").drawCircle(0, 0, 10);
+		this.drawing.graphics.beginFill(this.color).drawCircle(0, 0, this.radius);
 		
 		stage.addChild(this.drawing);
 
-		this.bounce = function(){
+		this.bounce = function(variant){
+			console.log('variant', variant);
 
 			var _x = this.x;
 			var _y = this.y;
@@ -75,7 +77,6 @@ app.controller('PongStage', ['$scope', function($scope) {
 			// 	this.dy = _dy;
 			// }
 			if (_dx * _x + _dy * _y > 0) {
-				console.log('flip');
 				this.dx = -1 * _dx;
 				this.dy = -1 * _dy;
 			} else {
@@ -84,20 +85,58 @@ app.controller('PongStage', ['$scope', function($scope) {
 			}
 
 		};
-
+		// Checks collision for the ball
 		this.update = function(){
-			if ( Math.sqrt(Math.pow(this.x,2) + Math.pow(this.y,2)) > radius ){
-				this.bounce();
+			if ( Math.sqrt(Math.pow(this.x,2) + Math.pow(this.y,2)) > (radius - this.radius)) {
+				var conversionFactor = (180.0 / Math.PI);
+				var alpha = conversionFactor * Math.atan(Math.abs(this.y) / Math.abs(this.x));
+				var theta;
+				if(this.y <= 0 && this.x >= 0){
+					theta = alpha;
+				}
+				else if(this.y <= 0 && this.x <= 0){
+					theta = 180.0 - alpha;
+				}
+				else if(this.y >=0 && this.x <= 0){
+					theta = 180 + alpha;
+				}
+				else if(this.y >= 0 && this.x >= 0){
+					theta = 360 - alpha;
+				}
+				// Check if the ball is hitting anything
+				var isMiss = true;
+				for(var i = 0 ; i < gameObjSectorsArray.length; i+=1){
+					var sector = gameObjSectors[gameObjSectorsArray[i]];
+					if (theta >= sector.angle && theta <= (sector.angle + sector.range)) {
+						// Theta is in this sector
+						var thetaOffset = (theta - sector.angle);
+						var thetaDisplacement = Math.abs(sector.paddle.angle - thetaOffset);
+						if (thetaDisplacement <=  sector.paddle.archDistance) {
+							// The paddle covers the collision
+							console.log('There was a collision with sector ', i, '\'s paddle');
+							// Since there was a collision - time to bounce
+							this.bounce(thetaDisplacement / sector.paddle.archDistance);
+							isMiss = false;
+							break;
+						}
+					}
+				}
+				// Check if we missed
+				if (isMiss) {
+					// The paddle misses
+					console.log('There was a MISS');
+					// Reset the position of the ball
+					this.x = 0;
+					this.y = 0;
+				}
 			}
-			
+			// Move the ball
 			this.x += this.dx;
 			this.y += this.dy;
-
-			console.log(Math.sqrt(Math.pow(this.x,2) + Math.pow(this.y,2)));
-
+			//console.log(Math.sqrt(Math.pow(this.x,2) + Math.pow(this.y,2)));
+			// Draws the ball
 			this.drawing.x = this.x + centerPoint.x;
 			this.drawing.y = this.y + centerPoint.y;
-
 		};
 	}
 
@@ -114,8 +153,9 @@ app.controller('PongStage', ['$scope', function($scope) {
 		stage.addChild(this.drawing);
 
 		this.angularVelocity = 0;
+		this.angularVelocityMin =  5;
 		this.angularVelocityMax =  10;
-		this.angularAcceleration = 3; 
+		this.angularAcceleration = 5; 
 
 		this.moveClockwise = function(){
 			if(this.angularVelocity > -this.angularVelocityMax){
@@ -124,6 +164,8 @@ app.controller('PongStage', ['$scope', function($scope) {
 			else{
 				this.angularVelocity=-this.angularVelocityMax;
 			}
+			this.angularVelocity = Math.min(-this.angularVelocityMin, this.angularVelocity);
+			console.log('speed' + this.angularVelocity)
 			this.keypressed = true;
 		};
 
@@ -134,6 +176,7 @@ app.controller('PongStage', ['$scope', function($scope) {
 			else{
 				this.angularVelocity=this.angularVelocityMax;
 			}
+			this.angularVelocity = Math.max(this.angularVelocityMin, this.angularVelocity);
 			this.keypressed = true;
 		};
 
@@ -148,20 +191,19 @@ app.controller('PongStage', ['$scope', function($scope) {
 
 		this.update = function(){
 			this.angle += this.angularVelocity;
-
-			if (this.keypressed == false){
-				if(this.angularVelocity > 0){
-					this.angularVelocity -= 2;
-				}
-				else{
-					this.angularVelocity = 0;
-				}
-			}
-
 			this.angle = this.angle % 360;
 			this.normalize();
 			this.drawing.rotation = (-(this.angle+this.archDistance/2 ) + this.sector.angle);
 			this.keypressed = false;
+
+			if (this.keypressed == false){
+				//if(this.angularVelocity > 0){
+				//	this.angularVelocity -= 2;
+				//}
+				//else{
+					//this.angularVelocity = 0;
+				//}
+			}
 		}
 
 		this.breakMovement = function(){
@@ -191,7 +233,6 @@ app.controller('PongStage', ['$scope', function($scope) {
 			var colorId = Math.round(Math.random() * (colors.length-1));
 			var color = colors[colorId];
 			colors.splice(colorId,1);
-			console.log(colors);
 
 			drawing.graphics.beginStroke(color)
 			    .setStrokeStyle(radius).arc(0,0, radius/2, 0, (360 / (1 + Object.keys(gameObjSectors).length)) * (Math.PI/180));
@@ -207,7 +248,6 @@ app.controller('PongStage', ['$scope', function($scope) {
 
 			sector.paddle = new gameObjPaddle(10, 0 ,sector);
 
-			console.log(sector);
 			recalculateSectors();
 		}
 
@@ -239,11 +279,11 @@ app.controller('PongStage', ['$scope', function($scope) {
 
 			gameObjSectors = new_object;
 
-			console.log(gameObjSectors);
+			// console.log(gameObjSectors);
 
 			recalculateSectors();
 
-			console.log(gameObjSectors);
+			// console.log(gameObjSectors);
 		}
 
 	}
@@ -253,7 +293,7 @@ app.controller('PongStage', ['$scope', function($scope) {
 		var num = Object.keys(gameObjSectors).length;
 		var previousRange = 0; 
 
-		console.log(num);
+		// console.log(num);
 
 		for(var i = 0; i < gameObjSectorsArray.length ; i +=1){
 			//gameObjSectors[i].range *= ((1 - num)/360);
@@ -266,9 +306,11 @@ app.controller('PongStage', ['$scope', function($scope) {
 			gameObjSectors[gameObjSectorsArray[i]].angle = previousRange;// + 180 - gameObjSectors[i].range/2;
 			previousRange += gameObjSectors[gameObjSectorsArray[i]].range;
 
-			console.log('r[', i, ']', gameObjSectors[gameObjSectorsArray[i]].range);
+			//console.log('r[', i, ']', gameObjSectors[gameObjSectorsArray[i]].range);
 
 		}
+
+		// console.log(gameObjSectors);
 
 	}
 
@@ -304,7 +346,7 @@ app.controller('PongStage', ['$scope', function($scope) {
 
 	var ball = new gameObjBall();
 
-	console.log(gameObjSectors);
+	// console.log(gameObjSectors);
 
 	function tick(event) { 
 		updatePaddles();
