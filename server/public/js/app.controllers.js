@@ -165,12 +165,13 @@ var initAnimations = function() {
 	$(window).resize(resizeTheCircle);
 };
 
-var scores = new Array();
+var scoreElements = new Array();
 var addScore = function(indexOfScorer) {
   	var scorer = gameObjSector[indexOfScorer];
 	
   	if (scores[indexOfScorer] != null) {
-      	scores[indexOfScorer].text(parseInt(scores[indexOfScorer].text()) + 1);
+      	scorer.score++;
+      	scoreElements[indexOfScorer].text(scorer.score);
     }
   	else {
       	var scoreItem = $('<div></div>');
