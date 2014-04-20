@@ -17,4 +17,22 @@ app.service('SocketSvc', function() {
 			paddlePosition: newPos
 		}));
 	};
+  	this.sendBounce = function(x, y, dx, dy, hitter) {
+		client.send(JSON.stringify({
+			type: 'bounce',
+			x: x,
+			y: y,
+			dx: dx,
+          	dy: dy,
+          	hitter: hitter
+		}));
+	};
+    this.sendMiss = function(dx, dy, misser) {
+      	client.send(JSON.stringify({
+			type: 'miss',
+			dx: dx,
+          	dy: dy,
+          	misser: misser
+		}));
+    };
 });

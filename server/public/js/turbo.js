@@ -20,6 +20,7 @@ var turbo = (function () {
 			_this.connected = true;
 			// Send the connection payload
 			_this.ws.send(JSON.stringify({
+              	type: 'connect',
 				user: _this.userId,
 				session: _this.sessionId
 			}));

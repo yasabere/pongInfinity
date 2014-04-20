@@ -1,11 +1,12 @@
 var updateCircleRadius;
+var tutorialOver = false;
 
 // load all the audio
+var epic = new Audio('./assets/sounds/epic-mix.mp3');
 var soundPaddle1 = new Audio('./assets/sounds/paddle-hit-1.wav');
 var soundPaddle2 = new Audio('./assets/sounds/paddle-hit-2.wav');
 var soundStart = new Audio('./assets/sounds/game-start.wav');
 var soundEnd = new Audio('./assets/sounds/game-end.wav');
-var epic = new Audio('./assets/sounds/epic-mix.mp3');
 
 app.controller('GameCtrl', function($scope, $routeParams, $rootScope, SocketSvc) {
 	epic.play();
@@ -13,9 +14,12 @@ app.controller('GameCtrl', function($scope, $routeParams, $rootScope, SocketSvc)
 		console.log('Connection established.');
 		doEventRegistration();
 	});
+
 	// The current state
 	$scope.state = null;
 	$scope.me = null;
+	$scope.session = $routeParams.session;
+
 	// Register for events
 	var doEventRegistration = function() {
 		SocketSvc.on('init', function(payload) {
@@ -65,6 +69,17 @@ app.controller('GameCtrl', function($scope, $routeParams, $rootScope, SocketSvc)
 				angle: payload.paddlePosition
 			});
 		});
+		SocketSvc.on('ball', function(payload) {
+			// Look for which sector's quadrant moved
+			//$scope.state[payload.id].paddlePosition = payload.paddlePosition;
+			$rootScope.$broadcast('BALL_MOVE', {
+				x: payload.x,
+				y: payload.y,
+				dx: payload.dx,
+				dy: payload.dy,
+              flag: payload.flag
+			});
+		});
 	};
 
 	// Get the animations started
@@ -76,7 +91,7 @@ var initAnimations = function() {
 		var logo = $("#logo");
 		logo.delay(2000).animate({
 			top: '200px',
-			zoom: '0.25'
+			zoom: '0.30'
 		}, 1500);
 
 		var width = Math.min(750, $(window).width() - 200);
@@ -99,7 +114,17 @@ var initAnimations = function() {
 
 		$("#circle-outline").delay(3500).fadeTo(500, 1);
 		$("#footer").delay(3500).fadeTo(1000, 1);
+		$("#circle #pong").delay(3500).fadeTo(1000, 1);
+
+		$("#message").delay(5000).fadeTo(500, 1);
+		$("#message").text("move your paddle with the arrow keys");
+		setTimeout(endTutorial, 10000);
 	});
+
+	function endTutorial() {
+		$("#message").fadeTo(500, 0);
+		tutorialOver = true;
+	};
 
 	var resizeTheCircle = function() {
 		var width = Math.min(750, $(window).width() - 200);
@@ -109,6 +134,7 @@ var initAnimations = function() {
 		$("#circle").css("height", size);
 		$("#circle").css("margin-left", -size / 2);
 		$("#circle").css("margin-top", -size / 2);
+
 		$('#circle #pong').css("margin-top", -(1000 - size) / 2);
 		$('#circle #pong').css("margin-left", -(1000 - size) / 2);
 
@@ -116,7 +142,7 @@ var initAnimations = function() {
 		console.log('updating circle radius');
 
 		if (size <= 100) {
-			$("#footer p").text("?_?");
+			$("#footer p").text("ಠ_ಠ");
 			$("#footer p").css("font-size", 36);
 			$("#footer p").css("font-family", "Helvetica");
 			$("#footer p").css("margin-left", -36);
@@ -137,27 +163,39 @@ var initAnimations = function() {
 	};
 
 	$(window).resize(resizeTheCircle);
+};
 
-	var addScore = function(color, score) {
-		var scoreItem = $('<div></div>');
+var scores = new Array();
+var addScore = function(indexOfScorer) {
+  	var scorer = gameObjSector[indexOfScorer];
+	
+  	if (scores[indexOfScorer] != null) {
+      	scores[indexOfScorer].text(parseInt(scores[indexOfScorer].text()) + 1);
+    }
+  	else {
+      	var scoreItem = $('<div></div>');
 		scoreItem.attr("class", "score-item");
 		scoreItem.css("background-color", color);
 
-		var scoreText = $('<p>' + score + '</p>');
-		scoreItem.append(scoreText);
-
-		$("#scoreboard").append(scoreItem);
-	};
+        var scoreText = $('<p>' + score + '</p>');
+        scoreItem.append(scoreText);
+        $("#scoreboard").append(scoreItem);
+    }
+  
+	if (tutorialOver) {
+		$("#message").fadeTo(500, 1);
+		$("#message").text("score!");
+		$("#message").delay(1000).fadeTo(500, 0);
+	}
 };
 
 app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 	function($scope, $routeParams, $rootScope, SocketSvc) {
 		//variables
-		var radius = 250;
+		var radius = 375;
 		var num_sectors = 1;
 		var userId = $routeParams.user;
 		var keysdown = false;
-		var bounced = false;
 
 		var keyPressedLeft = false;
 		var keyPressedRight = false;
@@ -175,28 +213,23 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 		var gameObjSectorsArray = [];
 
 		var colors = [
-			'#1abc9c',
-			'#2ecc71',
-			'#3498db',
-			'#9b59b6',
-			'#16a085',
-			'#27ae60',
-			'#2980b9',
 			'#8e44ad',
-			'#f1c40f',
-			'#e67e22',
-			'#e74c3c',
+			'#2980b9',
+			'#27ae60',
+			'#16a085',
 			'#f39c12',
 			'#d35400',
 			'#c0392b',
+			'#bdc3c7',
+			'#7f8c8d'
 		];
 
 		//objects
 
 		function gameObjBall() {
-			this.x = 40;
+			this.x = 0;
 			this.y = 0;
-			this.dx = 5;
+			this.dx = 0;
 			this.dy = 0;
 			this.radius = 10;
 			this.color = 'white';
@@ -204,91 +237,22 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 			this.drawing = new createjs.Shape();
 			this.drawing.graphics.beginFill(this.color).drawCircle(0, 0, this.radius);
 
-			stage.addChild(this.drawing);
-
-			this.bounce = function(variant) {
-				console.log('variant', variant);
-
-				var _x = this.x;
-				var _y = this.y;
-				var _dx = this.dx;
-				var _dy = this.dy;
-				var _c = 1.05; //speed multiplyer
-
-
-				var _m;
-				var _A;
-
-				_A = Math.sqrt(Math.pow(_dx, 2) + Math.pow(_dy, 2));
-				_m = ((2 * (_y / _x)) + ((_dy / _dx) * Math.pow((_y / _x), 2) - (_dy / _dx))) / (((2 * (_y / _x)) * (_dy / _dx) - Math.pow((_y / _x), 2) + 1));
-				_dx = Math.sqrt((Math.pow(_A, 2) * Math.pow(_c, 2)) / (Math.pow(_m, 2) + 1));
-				_dy = _m * _dx;
-
-				if (_dx * _x + _dy * _y > 0) {
-					this.dx = -1 * _dx;
-					this.dy = -1 * _dy;
-				} else {
-					this.dx = _dx;
-					this.dy = _dy;
-				}
+            this.update = function(){
+             	this.x = this.dx + this.x;
+				this.y = this.dy + this.y;
+              
+            	this.drawing.x = centerPoint.x + this.x;
+				this.drawing.y = centerPoint.y + this.y;
+            }
+            
+            this.sync = function(payload){
+            	this.x = payload.x;
+                this.y = payload.y;
+                this.dx = payload.dx;
+                this.dy = payload.dy;
 			};
-			// Checks collision for the ball
-			this.update = function() {
-				if (Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2)) > (radius - this.radius)) {
-					var conversionFactor = (180.0 / Math.PI);
-					var alpha = conversionFactor * Math.atan(Math.abs(this.y) / Math.abs(this.x));
-					var theta;
-					if (this.y <= 0 && this.x >= 0) {
-						theta = alpha;
-					} else if (this.y <= 0 && this.x <= 0) {
-						theta = 180.0 - alpha;
-					} else if (this.y >= 0 && this.x <= 0) {
-						theta = 180 + alpha;
-					} else if (this.y >= 0 && this.x >= 0) {
-						theta = 360 - alpha;
-					}
-					// Check if the ball is hitting anything
-					var isMiss = true;
-					for (var i = 0; i < gameObjSectorsArray.length; i += 1) {
-						var sector = gameObjSectors[gameObjSectorsArray[i]];
-						if (theta >= sector.angle && theta <= (sector.angle + sector.range)) {
-							// Theta is in this sector
-							var thetaOffset = (theta - sector.angle);
-							var thetaDisplacement = Math.abs(sector.paddle.angle - thetaOffset);
-							if (thetaDisplacement <= sector.paddle.archDistance) {
-								// The paddle covers the collision
-								console.log('There was a collision with sector ', i, '\'s paddle');
-								// Since there was a collision - time to bounce
-								this.bounce(thetaDisplacement / sector.paddle.archDistance);
-								isMiss = false;
-								if (Math.random() % 2 > 0.5) {
-									soundPaddle1.play();
-								} else {
-									soundPaddle2.play();
-								}
-								break;
-							}
-						}
-					}
-					// Check if we missed
-					if (isMiss) {
-						// The paddle misses
-						console.log('There was a MISS');
-						soundEnd.play();
 
-						// Reset the position of the ball
-						this.x = 0;
-						this.y = 0;
-					}
-				}
-				// Move the ball
-				this.x += this.dx;
-				this.y += this.dy;
-				//console.log(Math.sqrt(Math.pow(this.x,2) + Math.pow(this.y,2)));
-				// Draws the ball
-				this.drawing.x = this.x + centerPoint.x;
-				this.drawing.y = this.y + centerPoint.y;
-			};
+			if (stage) stage.addChild(this.drawing);
 		}
 
 		function gameObjPaddle(archDistance, angle, sector) {
@@ -370,7 +334,7 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 			this.range = range;
 			this.color = color;
 			this.paddle = null;
-			this.score = 1;
+			this.score = 0;
 			this.angle = 0;
 		}
 
@@ -378,7 +342,7 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 
 		//functions
 
-		function createSector(userId) {
+		function createSector(userId, paddleSize) {
 
 			if (gameObjSectorsArray.length < 8) {
 
@@ -399,7 +363,7 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 
 				gameObjSectorsArray.push(userId);
 
-				sector.paddle = new gameObjPaddle(10, 0, sector);
+				sector.paddle = new gameObjPaddle(paddleSize, 0, sector);
 
 				recalculateSectors();
 
@@ -465,7 +429,10 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 
 				gameObjSectors[gameObjSectorsArray[i]].drawing.rotation = previousRange; // + 180 -gameObjSectors[i].range/2;
 				gameObjSectors[gameObjSectorsArray[i]].angle = previousRange; // + 180 - gameObjSectors[i].range/2;
-				previousRange += gameObjSectors[gameObjSectorsArray[i]].range;
+				gameObjSectors[gameObjSectorsArray[i]].paddle.archDistance = gameObjSectors[gameObjSectorsArray[i]].range/6;
+                gameObjSectors[gameObjSectorsArray[i]].paddle.normalize();
+              	
+                previousRange += gameObjSectors[gameObjSectorsArray[i]].range;
 
 				//console.log('r[', i, ']', gameObjSectors[gameObjSectorsArray[i]].range);
 
@@ -477,19 +444,11 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 
 		function updatePaddles() {
 			for (var i in gameObjSectors) {
-
 				gameObjSectors[i].paddle.update();
-
 			}
 		}
 
-		function score() {
-
-		}
-
-		function defended() {
-
-		}
+		var ball = new gameObjBall();
 
 		//createjs
 		var stage = new createjs.Stage("pong");
@@ -497,11 +456,11 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 
 		$rootScope.$on('INIT_PLAYERS', function(evt, payload) {
 			payload.state.forEach(function(player) {
-				createSector(player.id);
+				createSector(player.id, player.paddleSize);
 			});
 		});
 		$rootScope.$on('NEW_PLAYER', function(evt, payload) {
-			createSector(payload.id);
+			createSector(payload.id, payload.paddleSize);
 		});
 		$rootScope.$on('PLAYER_LEFT', function(evt, payload) {
 			deleteSector(payload.id);
@@ -510,14 +469,29 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 			gameObjSectors[payload.id].paddle.angle = payload.angle;
 			gameObjSectors[payload.id].paddle.normalize();
 		});
+		$rootScope.$on('BALL_MOVE', function(evt, payload) {
+          if (payload.flag != null) {
+			if (payload.flag === 'bounce') {
+				if (Math.random() % 2 > 0.5) {
+					soundPaddle1.play();
+				} else {
+					soundPaddle2.play();
+				}
+			} else if (payload.flag.substring(0,4) === 'miss') {
+				soundEnd.play(payload);
+              	addScore(payload.flag.split(":")[1]);
+			}
+          }
 
-		var ball = new gameObjBall();
+			ball.sync(payload);
+          
+		});
 
 		// console.log(gameObjSectors);
 
 		function tick(event) {
 			updatePaddles();
-			ball.update();
+          	ball.update();
 			stage.update();
 		}
 
@@ -536,6 +510,7 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 				});
 			}
 		});
+
 		$(document).keyup(function(event) {
 			if (event.which === 37) {
 				//console.log("right");

@@ -57,6 +57,12 @@ h1 {
 	opacity: 0;
 }
 
+#circle #pong {
+	margin-top: -125px;
+	margin-left: -125px;
+  	opacity: 0;
+}
+
 #scoreboard {
 	position: absolute;
 	bottom: 50px;
@@ -84,8 +90,40 @@ div.score-item p {
 #footer {
 	position: absolute;
 	bottom: 30px;
-	left: 50%;
+  	right: 30px;
 	font-size: 20px;
 	font-weight: 300;
 	opacity: 0;
+  	text-align: center;
+}
+
+#footer p {
+  	float: left;
+	margin-top: 5px;
+}
+
+input {
+  	z-index: 999999;
+  	float: left;
+  	color: white;
+  	font-size: 14px;
+  	font-weight: 400;
+  	margin-left: 8px;
+	padding: 10px;
+  	background: #2c3e50;
+  	border-radius: 10px;
+  	width: 500px;
+  	text-align: center;
+}
+
+#message {
+	position: absolute;
+  	top: 40%;
+  	left: 35%;
+  	right: 35%;
+  	font-size: 50px;
+  	opacity: 0;
+  	text-align: center;
+	z-index: 20;
+  	font-weight: 100;
 }
