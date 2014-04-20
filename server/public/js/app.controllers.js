@@ -116,7 +116,7 @@ var initAnimations = function() {
 		console.log('updating circle radius');
 
 		if (size <= 100) {
-			$("#footer p").text("ಠ_ಠ");
+			$("#footer p").text("?_?");
 			$("#footer p").css("font-size", 36);
 			$("#footer p").css("font-family", "Helvetica");
 			$("#footer p").css("margin-left", -36);
@@ -127,22 +127,6 @@ var initAnimations = function() {
 			$("#footer p").css("margin-left", -119.5);
 		}
 
-<<<<<<< HEAD
-app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc', function($scope, $routeParams, $rootScope, SocketSvc) {
-	//variables
-	var radius = 250;
-	var num_sectors = 1;
-	var userId = $routeParams.user;
-	var keysdown = false;
-	var bounced = false;
-	
-	var keyPressedLeft = false;
-	var keyPressedRight = false;
-	
-	updateCircleRadius = function(newRadius) {
-		radius = newRadius;
-		if (stage) stage.update();
-=======
 		var width = Math.min(770, $(window).width() - 180);
 		var height = Math.min(770, $(window).height() - 180);
 		var size = Math.min(width, height);
@@ -150,7 +134,6 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 		$("#circle-outline").css("height", size);
 		$("#circle-outline").css("margin-left", -size / 2);
 		$("#circle-outline").css("margin-top", -size / 2);
->>>>>>> 1e1093a9563bfad5064b79b4cb71747833eddcd0
 	};
 
 	$(window).resize(resizeTheCircle);
@@ -176,57 +159,16 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 		var keysdown = false;
 		var bounced = false;
 
+		var keyPressedLeft = false;
+		var keyPressedRight = false;
 		updateCircleRadius = function(newRadius) {
 			radius = newRadius;
 			if (stage) stage.update();
 		};
 
-<<<<<<< HEAD
-	//objects
-
-	function gameObjBall(){
-		this.x = 40;
-		this.y = 0;
-		this.dx = 5;
-		this.dy = 0;
-		this.radius = 10;
-		this.color = 'white';
-
-		this.drawing = new createjs.Shape();
-		this.drawing.graphics.beginFill(this.color).drawCircle(0, 0, this.radius);
-		
-		stage.addChild(this.drawing);
-
-		this.bounce = function(variant){
-			console.log('variant', variant);
-
-			var _x = this.x;
-			var _y = this.y;
-			var _dx = this.dx;
-			var _dy = this.dy;
-			var _c = 1.05; //speed multiplyer
-
-
-			var _m;
-			var _A;
-
-			_A = Math.sqrt( Math.pow(_dx,2) + Math.pow(_dy,2) );
-			_m = ((2*(_y/_x)) + ( (_dy/_dx) * Math.pow((_y/_x),2)-(_dy/_dx))) /( ( (2*(_y/_x)) * (_dy/_dx) - Math.pow((_y/_x),2) + 1 ));
-			_dx = Math.sqrt( (Math.pow(_A,2) * Math.pow(_c,2) ) / ( Math.pow(_m,2) + 1) );
-			_dy = _m * _dx;
-
-			if (_dx * _x + _dy * _y > 0) {
-				this.dx = -1 * _dx;
-				this.dy = -1 * _dy;
-			} else {
-				this.dx = _dx;
-				this.dy = _dy;
-			}
-=======
 		var centerPoint = {
 			x: 500,
 			y: 500,
->>>>>>> 1e1093a9563bfad5064b79b4cb71747833eddcd0
 		};
 
 		var gameObjSectors = {};
@@ -271,7 +213,7 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 				var _y = this.y;
 				var _dx = this.dx;
 				var _dy = this.dy;
-				var _c = 1.00; //speed multiplyer
+				var _c = 1.05; //speed multiplyer
 
 
 				var _m;
@@ -289,24 +231,6 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 					this.dx = _dx;
 					this.dy = _dy;
 				}
-<<<<<<< HEAD
-				// Check if the ball is hitting anything
-				var isMiss = true;
-				for(var i = 0 ; i < gameObjSectorsArray.length; i+=1){
-					var sector = gameObjSectors[gameObjSectorsArray[i]];
-					if (theta >= sector.angle && theta <= (sector.angle + sector.range)) {
-						// Theta is in this sector
-						var thetaOffset = (theta - sector.angle);
-						var thetaDisplacement = Math.abs(sector.paddle.angle - thetaOffset);
-						if (thetaDisplacement <=  sector.paddle.archDistance) {
-							// The paddle covers the collision
-							console.log('There was a collision with sector ', i, '\'s paddle');
-							console.log(thetaDisplacement);
-							// Since there was a collision - time to bounce
-							this.bounce(thetaDisplacement / sector.paddle.archDistance);
-							isMiss = false;
-							break;
-=======
 			};
 			// Checks collision for the ball
 			this.update = function() {
@@ -344,7 +268,6 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 								}
 								break;
 							}
->>>>>>> 1e1093a9563bfad5064b79b4cb71747833eddcd0
 						}
 					}
 					// Check if we missed
@@ -396,18 +319,6 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 				this.keypressed = true;
 			};
 
-<<<<<<< HEAD
-			if (keyPressedLeft == false && keyPressedRight == false) {
-
-				if (this.angularVelocity > 0) {
-					this.angularVelocity = Math.max(0, this.angularVelocity - 1);
-				}
-
-				if (this.angularVelocity < 0) {
-					this.angularVelocity = Math.min(0, this.angularVelocity + 1);
-				}
-
-=======
 			this.moveCounterClockwise = function() {
 				if (this.angularVelocity < this.angularVelocityMax) {
 					this.angularVelocity += this.angularAcceleration;
@@ -435,15 +346,17 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 				this.drawing.rotation = (-(this.angle + this.archDistance / 2) + this.sector.angle);
 				this.keypressed = false;
 
-				if (this.keypressed == false) {
-					//if(this.angularVelocity > 0){
-					//	this.angularVelocity -= 2;
-					//}
-					//else{
-					//this.angularVelocity = 0;
-					//}
+				if (keyPressedLeft == false && keyPressedRight == false) {
+
+					if (this.angularVelocity > 0) {
+						this.angularVelocity = Math.max(0, this.angularVelocity - 1);
+					}
+
+					if (this.angularVelocity < 0) {
+						this.angularVelocity = Math.min(0, this.angularVelocity + 1);
+					}
+
 				}
->>>>>>> 1e1093a9563bfad5064b79b4cb71747833eddcd0
 			}
 
 			this.breakMovement = function() {
@@ -608,30 +521,21 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 			stage.update();
 		}
 
-<<<<<<< HEAD
-	$(document).keydown(function(event) {
-=======
 		$(document).keydown(function(event) {
->>>>>>> 1e1093a9563bfad5064b79b4cb71747833eddcd0
 			if (event.which === 37) {
 				//console.log("right");
 				$scope.$apply(function() {
 					gameObjSectors[userId].paddle.moveClockwise();
-<<<<<<< HEAD
 					keyPressedRight = true;
-=======
->>>>>>> 1e1093a9563bfad5064b79b4cb71747833eddcd0
 				});
 			} else if (event.which === 39) {
 				//console.log("left");
 				$scope.$apply(function() {
 					gameObjSectors[userId].paddle.moveCounterClockwise();
-<<<<<<< HEAD
 					keyPressedLeft = true;
 				});
 			}
 		});
-
 		$(document).keyup(function(event) {
 			if (event.which === 37) {
 				//console.log("right");
@@ -645,11 +549,5 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 				});
 			}
 		});
-}]);
-=======
-				});
-			}
-		});
 	}
 ]);
->>>>>>> 1e1093a9563bfad5064b79b4cb71747833eddcd0
