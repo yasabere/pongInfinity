@@ -95,11 +95,12 @@ function onFrame(sessionId, delta){
                   	flag = 'miss:' + session(sessionId).lastHit + ':' + i;
                   	session(sessionId).lastHit = -1;
                   	var theta = Math.PI * 2 * Math.random();
+                  
                   	// Reset the position of the ball
                   	ball.x = 0;
                   	ball.y = 0;
-                  	ball.dx = /*(INITIAL_VELOCITY * Math.cos(theta))*/ 0.1;
-                  	ball.dy = /*(INITIAL_VELOCITY * Math.sin(theta))*/ 0.1;
+                  	ball.dx = (INITIAL_VELOCITY * Math.cos(theta)); // 0.1;
+                  	ball.dy = (INITIAL_VELOCITY * Math.sin(theta)); // 0.1;
                 }
                 break;
             }

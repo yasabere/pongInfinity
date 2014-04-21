@@ -375,12 +375,13 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 
 				for (var i = 0; i < gameObjSectorsArray.length; i += 1) {
 					if (gameObjSectorsArray[i] == userId) {
+                      	delete gameObjSectorsArray[i].paddle;
 						gameObjSectorsArray.splice(i, 1);
 					}
 				}
 
-				delete gameObjSectors[userId].paddle;
-				delete gameObjSectors[userId];
+				//delete gameObjSectors[userId].paddle;
+				//delete gameObjSectors[userId];
 
 				var new_object = {};
 
