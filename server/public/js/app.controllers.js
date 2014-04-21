@@ -172,6 +172,7 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 		var num_sectors = 1;
 		var userId = $routeParams.user;
 		var keysdown = false;
+      	$scope.sectors;
 
 		var keyPressedLeft = false;
 		var keyPressedRight = false;
@@ -196,6 +197,7 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 
 		var gameObjSectors = {};
 		var gameObjSectorsArray = [];
+      	$scope.sectors = gameObjSectorsArray;
 
 		var colors = [
 			'#8e44ad',
@@ -257,6 +259,8 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 			this.angularVelocityMin = 5;
 			this.angularVelocityMax = 10;
 			this.angularAcceleration = 5;
+          
+          	SocketSvc.movePaddle(-1, userId, this.angle);
 
 			this.moveClockwise = function() {
               if (this.angularVelocity > -this.angularVelocityMax) {
@@ -265,7 +269,6 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 					this.angularVelocity = -this.angularVelocityMax;
 				}
 				this.angularVelocity = Math.min(-this.angularVelocityMin, this.angularVelocity);
-				console.log('speed' + this.angularVelocity)
 				this.keypressed = true;
 			};
 
@@ -370,33 +373,24 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 
 			if (gameObjSectorsArray.length > 0) {
               
-				stage.removeChild(gameObjSectors[userId].drawing);
-				stage.removeChild(gameObjSectors[userId].paddle.drawing);
+				stage.removeChild(findUser(userId).drawing);
+				stage.removeChild(findUser(userId).paddle.drawing);
 
 				for (var i = 0; i < gameObjSectorsArray.length; i += 1) {
-					if (gameObjSectorsArray[i] == userId) {
+					if (gameObjSectorsArray[i].id == userId) {
                       	delete gameObjSectorsArray[i].paddle;
 						gameObjSectorsArray.splice(i, 1);
 					}
 				}
-
-				//delete gameObjSectors[userId].paddle;
-				//delete gameObjSectors[userId];
-
-				var new_object = {};
-
-				for (var i in gameObjSectors) {
-					new_object[i] = gameObjSectors[i];
-				}
-
-				gameObjSectors = new_object;
-
-				// console.log(gameObjSectors);
+              
+              	alert(gameObjSectorsArray.length);
 
 				recalculateSectors();
-
-				// console.log(gameObjSectors);
 				refreshBall();
+              
+                // Fix:
+              	SocketSvc.movePaddle(-1, userId, this.angle);
+              
 			}
 
 		}
@@ -471,13 +465,14 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 			}
           }
 
-			ball.sync(payload);
+		  ball.sync(payload);
           
 		});
 
 		// console.log(gameObjSectors);
 
 		function tick(event) {
+          	stage.clear();
 			updatePaddles();
           	ball.update();
 			stage.update();
