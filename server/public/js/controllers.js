@@ -200,11 +200,17 @@ app.controller('PongStage', ['$scope',
 			};
 
 			this.normalize = function() {
+        
 				this.archDistance = Math.min(this.sector.range, this.archDistance)
-				this.angle = Math.min(this.angle, sector.range - this.archDistance / 2);
-				this.angle = Math.max(this.angle, this.archDistance / 2);
+				//this.angle = Math.min(this.angle, (this.sector.range >= 360) ? (sector.range - this.archDistance / 2) : 720 )  % 360;
+				//this.angle = Math.max(this.angle, this.archDistance / 2);
+        
+        if (this.angle < 0){
+          this.angle += 360;
+        }
+        
 				this.drawing.graphics.clear();
-				this.drawing.graphics.beginStroke('white')
+				this.drawing.graphics.beginStroke('red')
 					.setStrokeStyle(5).arc(0, 0, radius + 5, 0, this.archDistance * (Math.PI / 180));
 			};
 
@@ -231,8 +237,6 @@ app.controller('PongStage', ['$scope',
 			this.breakMovement = function() {
 				this.angularVelocity -= this.angularAcceleration;
 			};
-
-
 
 		}
 

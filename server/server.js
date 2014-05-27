@@ -8,7 +8,7 @@ var md5 = require('MD5');
 
 var FRAME_LENGTH = 50;
 var GAME_RADIUS = 375;
-var INITIAL_VELOCITY = 0.05;
+var INITIAL_VELOCITY = 0.1;
 var games = {};
 
 app.use(express.static('public'));
@@ -141,41 +141,52 @@ server.on('connection', function(socket){
 	var sessionId;
 	socket.on('message', function(data){
 		var payload = JSON.parse(data);
+    
 		if (!sessionId) sessionId = payload.session;
-		if(payload.type === 'connect'){
+    
+		if (payload.type === 'connect'){
 			socket.playerId = payload.user;
 			session(sessionId).players.push(socket);
 			var numPlayers = session(sessionId).players.length;
 			socket.playerSize = 360.0 / numPlayers;
 			socket.paddlePosition = socket.playerSize / 2.0;
-          	socket.paddleSize = socket.playerSize / 6.0;
+      socket.paddleSize = socket.playerSize / 6.0;
 			var multiplier = ((360.0 - socket.playerSize) / 360.0);
 			var stateArray = [];
+      
 			for(var i = 0; i<numPlayers; i++){
+      
 				if (i !== (numPlayers - 1)) session(sessionId).players[i].playerSize *= multiplier;
 				if (i !== (numPlayers - 1)) session(sessionId).players[i].paddlePosition *= multiplier;
-              	if (i !== (numPlayers - 1)) session(sessionId).players[i].paddleSize *= multiplier;
+        if (i !== (numPlayers - 1)) session(sessionId).players[i].paddleSize *= multiplier;
+        
 				stateArray.push({
 					size: session(sessionId).players[i].playerSize, 
 					paddlePosition: session(sessionId).players[i].paddlePosition,
-                  	paddleSize: session(sessionId).players[i].paddleSize,
+          paddleSize: session(sessionId).players[i].paddleSize,
 					id: session(sessionId).players[i].playerId
 				});
 			}
+      
 			socket.send(JSON.stringify({type: 'init', state: stateArray }));
+      
 			var beginObj = {type: 'newPlayer',  numPlayers: numPlayers, playerId: socket.playerId };
+      
 			for(var i=0; i < numPlayers - 1; i++){
 				session(sessionId).players[i].send(JSON.stringify(beginObj));
 			}
-          for(var i=0; i < numPlayers; i++){
-            console.log(session(sessionId).players[i].playerId);
+      
+      for(var i=0; i < numPlayers; i++){
+        console.log(session(sessionId).players[i].playerId);
 			}
-          	
-          
-          	session(sessionId).loop.begin();
+          	 
+      session(sessionId).loop.begin();
 		} else if (payload.type === 'paddleMove') {
-          	console.log('got the paddle move', payload.paddlePosition, payload.id);
-          	socket.paddlePosition = payload.paddlePosition;
+      //console.log('got the paddle move', payload.paddlePosition, payload.id);
+      socket.paddlePosition = payload.paddlePosition;
+      
+      console.log(payload);
+          
 			session(sessionId).players.forEach(function(player) {
 				if (socket !== player) {
 					player.send(data);
@@ -191,7 +202,10 @@ server.on('connection', function(socket){
 		session(sessionId).players.splice(index, 1);
 		var numPlayers = session(sessionId).players.length;
 		var multiplier = (360.0 / (360.0 - vacantSpace));
+      	console.log(numPlayers + ' players left');
+      
 		if (numPlayers > 0) {
+          	
 			var endObj = {
 				type: 'playerLeave', 
 				playerIndex: index, 
@@ -202,7 +216,7 @@ server.on('connection', function(socket){
 			for(var i=0; i<numPlayers; i++){
 				session(sessionId).players[i].size *= multiplier;
 				session(sessionId).players[i].paddlePosition *= multiplier;
-              	session(sessionId).players[i].paddleSize *= multiplier;
+        session(sessionId).players[i].paddleSize *= multiplier;
 				session(sessionId).players[i].send(JSON.stringify(endObj));
 			}
 		} else {
@@ -211,4 +225,4 @@ server.on('connection', function(socket){
 	});
 	
 });
-app.listen(80);
+app.listen(4000);

@@ -183,9 +183,9 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
       
       function findUser(id) {
         for(var i = 0; i < gameObjSectorsArray.length ;i+=1){
-            if(gameObjSectorsArray[i].id === id){
-              return gameObjSectorsArray[i];
-            } 
+          if(gameObjSectorsArray[i].id === id){
+            return gameObjSectorsArray[i];
+          } 
         }
         return null;
       }
@@ -197,7 +197,7 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 
 		var gameObjSectors = {};
 		var gameObjSectorsArray = [];
-      	$scope.sectors = gameObjSectorsArray;
+    $scope.sectors = gameObjSectorsArray;
 
 		var colors = [
 			'#8e44ad',
@@ -260,10 +260,10 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 			this.angularVelocityMax = 10;
 			this.angularAcceleration = 5;
           
-          	SocketSvc.movePaddle(-1, userId, this.angle);
+      SocketSvc.movePaddle(-1, userId, this.angle);
 
 			this.moveClockwise = function() {
-              if (this.angularVelocity > -this.angularVelocityMax) {
+        if (this.angularVelocity > -this.angularVelocityMax) {
 					this.angularVelocity -= this.angularAcceleration;
 				} else {
 					this.angularVelocity = -this.angularVelocityMax;
@@ -283,9 +283,13 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 			};
 
 			this.normalize = function() {
+        console.log((this.sector.range >= 360));
 				this.archDistance = Math.min(this.sector.range, this.archDistance)
-				this.angle = Math.min(this.angle, sector.range - this.archDistance / 2);
-				this.angle = Math.max(this.angle, this.archDistance / 2);
+				this.angle = Math.min(this.angle, (this.sector.range < 360) ? (sector.range - this.archDistance / 2) : 720 )  % 360;
+				this.angle = Math.max(this.angle, (this.sector.range < 360) ? (this.archDistance / 2) : -360);
+        if (this.angle < 0){
+          this.angle += 360;
+        }
 				this.drawing.graphics.clear();
 				this.drawing.graphics.beginStroke('white')
 					.setStrokeStyle(5).arc(0, 0, radius + 5, 0, this.archDistance * (Math.PI / 180));
@@ -325,7 +329,7 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 			this.paddle = null;
 			this.score = 0;
 			this.angle = 0;
-          	this.id = id;
+      this.id = id;
 		}
 
 		//function 
@@ -358,8 +362,8 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 
 				refreshBall();
               
-              console.log(gameObjSectorsArray);
-              console.log(userId, sector);
+        console.log(gameObjSectorsArray);
+        console.log(userId, sector);
 			}
 
 		}
@@ -378,21 +382,22 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 
 				for (var i = 0; i < gameObjSectorsArray.length; i += 1) {
 					if (gameObjSectorsArray[i].id == userId) {
-                      	delete gameObjSectorsArray[i].paddle;
+            delete gameObjSectorsArray[i].paddle;
 						gameObjSectorsArray.splice(i, 1);
 					}
 				}
-              
-              	alert(gameObjSectorsArray.length);
 
 				recalculateSectors();
 				refreshBall();
+        
+        console.log('Deleting sector - the resized sectors:');
+        for (var i = 0; i < gameObjSectorsArray.length; i += 1) {
+					console.log(gameObjSectorsArray[i].range);
+				}
               
-                // Fix:
-              	SocketSvc.movePaddle(-1, userId, this.angle);
-              
+        // Fix:
+        SocketSvc.movePaddle(-1, userId, this.angle);    
 			}
-
 		}
 
 		function recalculateSectors() {
@@ -411,9 +416,9 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 				gameObjSectorsArray[i].drawing.rotation = previousRange; // + 180 -gameObjSectors[i].range/2;
 				gameObjSectorsArray[i].angle = 360 - previousRange; // + 180 - gameObjSectors[i].range/2;
 				gameObjSectorsArray[i].paddle.archDistance = gameObjSectorsArray[i].range/6;
-                gameObjSectorsArray[i].paddle.normalize();
-              	
-                previousRange += gameObjSectorsArray[i].range;
+        gameObjSectorsArray[i].paddle.normalize();
+        
+        previousRange += gameObjSectorsArray[i].range;
 
 				//console.log('r[', i, ']', gameObjSectors[gameObjSectorsArray[i]].range);
 
@@ -447,34 +452,30 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 			deleteSector(payload.id);
 		});
 		$rootScope.$on('PADDLE_MOVE', function(evt, payload) {
-          
 			findUser(payload.id).paddle.angle = payload.angle;
 			findUser(payload.id).paddle.normalize();
 		});
 		$rootScope.$on('BALL_MOVE', function(evt, payload) {
-          if (payload.flag != null) {
-			if (payload.flag === 'bounce') {
-				if (Math.random() % 2 > 0.5) {
-					soundPaddle1.play();
-				} else {
-					soundPaddle2.play();
-				}
-			} else if (payload.flag.substring(0,4) === 'miss') {
-				soundEnd.play(payload);
-              	//addScore(payload.flag.split(":")[1], payload.flag.split(":")[2]);
-			}
+      if (payload.flag != null) {
+        if (payload.flag === 'bounce') {
+          if (Math.random() % 2 > 0.5) {
+            soundPaddle1.play();
+          } else {
+            soundPaddle2.play();
           }
-
-		  ball.sync(payload);
-          
+        } else if (payload.flag.substring(0,4) === 'miss') {
+          soundEnd.play(payload);
+          //addScore(payload.flag.split(":")[1], payload.flag.split(":")[2]);
+        }
+		  ball.sync(payload);    
 		});
 
 		// console.log(gameObjSectors);
 
 		function tick(event) {
-          	stage.clear();
+      stage.clear();
 			updatePaddles();
-          	ball.update();
+      ball.update();
 			stage.update();
 		}
       
@@ -482,9 +483,7 @@ app.controller('PongCtrl', ['$scope', '$routeParams', '$rootScope', 'SocketSvc',
 		$(document).keydown(function(event) {
 			if (event.which === 37) {
 				//console.log("right");
-				$scope.$apply(function() {
-                  
-                  	
+				$scope.$apply(function() { 	
 					findUser(userId).paddle.moveClockwise();
 					keyPressedRight = true;
 				});
